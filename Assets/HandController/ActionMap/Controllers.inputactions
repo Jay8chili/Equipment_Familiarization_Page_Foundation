@@ -1,0 +1,146 @@
+{
+    "name": "Controllers",
+    "maps": [
+        {
+            "name": "Left Controller",
+            "id": "3f9b085d-1c47-49bd-bfcf-d117b653cef0",
+            "actions": [
+                {
+                    "name": "Grip",
+                    "type": "Value",
+                    "id": "d58ab11f-7bca-43c7-b358-d572a95fd855",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Trigger",
+                    "type": "Value",
+                    "id": "51a7951d-5d2a-4dc1-ab5f-eb381996bfb7",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "abda9420-d369-42e9-96fd-ab390f6b7261",
+                    "path": "<XRController>{LeftHand}/grip",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Grip",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "13461802-37f0-4ac6-94ea-4614314f1921",
+                    "path": "<VIVEFocus3Controller>{LeftHand}/grip",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Grip",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c6fbd542-8ece-43fc-901d-1fdd7c83f4b0",
+                    "path": "<XRController>{LeftHand}/trigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Trigger",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6dc52ef0-6f5e-4947-91ba-1a3047e879cf",
+                    "path": "<VIVEFocus3Controller>{LeftHand}/trigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Trigger",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Right Conroller",
+            "id": "7163e977-1f59-4c50-8b94-c782c88a1a22",
+            "actions": [
+                {
+                    "name": "Grip",
+                    "type": "Value",
+                    "id": "d490a80a-dcc1-4502-9e17-679db76cfcd7",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Trigger",
+                    "type": "Value",
+                    "id": "597d8191-ba48-4c72-910b-f228bc11d551",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "f46a06e8-4b06-424d-8680-6a8a067fd3e9",
+                    "path": "<XRController>{RightHand}/grip",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Grip",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a8cedf95-5d8d-4f09-9eb8-d75023e4e03e",
+                    "path": "<VIVEFocus3Controller>{RightHand}/grip",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Grip",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5458bbd0-794a-44c1-a031-fca2c85eb227",
+                    "path": "<XRController>{RightHand}/trigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Trigger",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "02121839-0118-4d1c-8b68-29075d77a52f",
+                    "path": "<VIVEFocus3Controller>{RightHand}/trigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Trigger",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
