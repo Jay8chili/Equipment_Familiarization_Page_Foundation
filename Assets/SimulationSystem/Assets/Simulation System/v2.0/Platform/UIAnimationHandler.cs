@@ -37,53 +37,53 @@ namespace SimulationSystem.V0._1.UI
         }
         private async void Update()
         {
-            
-                if (_states == DetectStates.Detect && _status == LabelStatus.None)
+
+            if (_states == DetectStates.Detect && _status == LabelStatus.None)
+            {
+                if (!uiTransform)
                 {
-                    if (!uiTransform)
-                    {
-                        await this.transform.DoPop(hoverScale.x, animationTime,onComplete:()=> { });
+                    await this.transform.DoPop(hoverScale.x, animationTime, onComplete: () => { });
                 }
-                    else
-                    {
+                else
+                {
                     await this.transform.DoPop(hoverScale.x, animationTime, onComplete: () => { });
                 }
 
-                    _status = LabelStatus.Show;
-                }
-                else if (_states == DetectStates.UnDetect && _status == LabelStatus.Show)
+                _status = LabelStatus.Show;
+            }
+            else if (_states == DetectStates.UnDetect && _status == LabelStatus.Show)
+            {
+                if (!uiTransform)
                 {
-                    if (!uiTransform)
-                    {
-                        await this.transform.DoPop(unHoverScale.x, animationTime, onComplete:
-                       ()=>
-                        {
-                            _states = DetectStates.Normal;
-                            _status = LabelStatus.None;
-                        });
-                    }
-                    else
-                    {
+                    await this.transform.DoPop(unHoverScale.x, animationTime, onComplete:
+                   () =>
+                   {
+                       _states = DetectStates.Normal;
+                       _status = LabelStatus.None;
+                   });
+                }
+                else
+                {
                     await this.transform.DoPop(unHoverScale.x, animationTime, onComplete:
                        () =>
-                        
-                        {
-                            _states = DetectStates.Normal;
-                            _status = LabelStatus.None;
-                        });
-                    }
 
-                    _status = LabelStatus.Hide;
+                       {
+                           _states = DetectStates.Normal;
+                           _status = LabelStatus.None;
+                       });
                 }
-                else if (_states == DetectStates.Normal && _status == LabelStatus.Hide)
-                {
-                    _status = LabelStatus.None;
-                }
-            
-           
+
+                _status = LabelStatus.Hide;
+            }
+            else if (_states == DetectStates.Normal && _status == LabelStatus.Hide)
+            {
+                _status = LabelStatus.None;
+            }
+
+
         }
 
-        
+
         public void DisableDetection()
         {
             //isFirstTrigger = false;
@@ -93,7 +93,7 @@ namespace SimulationSystem.V0._1.UI
         #region PromptScreenFunctions
         public async void ScaleUp()
         {
-            transform.localScale = this.hoverScale;           
+            transform.localScale = this.hoverScale;
         }
         public async void ScaleDown()
         {
@@ -103,7 +103,7 @@ namespace SimulationSystem.V0._1.UI
 
         #endregion
 
-        }
+    }
 }
 public enum DominantHand
 {

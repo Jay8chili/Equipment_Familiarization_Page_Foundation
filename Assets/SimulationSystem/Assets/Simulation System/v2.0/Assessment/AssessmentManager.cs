@@ -19,7 +19,7 @@ public class AssessmentManager : MonoBehaviour
     // ── Session Data ─────────────────────────────────────────────────────────
 
     private AssessmentSession _session;
-    private StateAssessmentRecord _currentStateRecord;
+    public StateAssessmentRecord _currentStateRecord;
     private InteractionAssessmentRecord _currentInteractionRecord;
 
     // ── Runtime State ────────────────────────────────────────────────────────
