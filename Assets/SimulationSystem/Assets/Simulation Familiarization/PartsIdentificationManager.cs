@@ -3,6 +3,8 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 using SimulationSystem.V02.Assistant;
+using SimulationSystem.V02.Utility;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -12,19 +14,24 @@ using UnityEngine.Events;
 [System.Serializable]
 public class StationGroup
 {
+    [SerializeField]
     [Tooltip("Display name — used only for Inspector clarity and debug logs.")]
     public string stationName;
 
+    [SerializeField]
     [Tooltip("Station ID matching the StationID field on PartStepData (e.g. S01).")]
     public string stationId;
 
+    [SerializeField]
     [Tooltip("Index of the Station intro SimulationState in SimulationManager.states.")]
     public int stationIntroStateIndex;
 
+    [SerializeField]
     [Tooltip("Ordered indices of all Part SimulationStates in SimulationManager.states " +
              "that belong to this station.")]
     public List<int> partStateIndices = new List<int>();
 
+    [SerializeField]
     [Tooltip("The StationIButton in the scene that the user ray-clicks to trigger this station " +
              "in Free Roam mode.")]
     public StationIButton iButton;
@@ -68,12 +75,20 @@ public class PartsIdentificationManager : MonoBehaviour
              "CustomButton is found automatically from its children at runtime.")]
     public GameObject skipButtonGO;
 
+    [Tooltip("Seconds the skip button stays disabled after being pressed. " +
+             "Set to 0 to re-enable immediately after the next state starts.")]
+    public float skipCooldownDuration = 3f;
+
     // ── Internal ──────────────────────────────────────────────────────────
     private StationGroup _activeGroup;
     private int _activeGroupEndIdx = -1;
     private GameObject _activeHighlight;
     private FamiliarizationUIPanel _activePanel;
     private SimulationState _lastKnownState;
+    private SimulationState _pendingHighlightState; // waiting for teleport before showing highlight
+    private Coroutine _skipCooldownCoroutine;  // re-enables skip button after cooldown
+    private Coroutine _videoCoroutine;          // coroutine waiting for video/audio to finish
+    private bool _videoIntercepting;       // true when we are controlling advancement for video
 
     // ── Lifecycle ─────────────────────────────────────────────────────────
 
@@ -96,6 +111,20 @@ public class PartsIdentificationManager : MonoBehaviour
         AssistantManager.PromptCompleted += OnPromptCompleted;
 
         SetAllIButtonsVisible(false);
+        TeleportManager.TeleportCompleted += OnTeleportCompletedForHighlight;
+
+        // Subscribe to onStateStart on every state so PreCheckVideoIntercept
+        // fires synchronously when the state starts — before HidePromptAfter runs.
+        if (simulationManager != null)
+        {
+            foreach (var stateGO in simulationManager.states)
+            {
+                if (stateGO == null) continue;
+                var simState = stateGO.GetComponent<SimulationState>();
+                if (simState != null)
+                    simState.onStateStart.AddListener(() => PreCheckVideoIntercept(simState));
+            }
+        }
 
         // Wire CustomButton.OnButtonClicked → SkipToNextStation at runtime
         if (skipButtonGO != null)
@@ -116,6 +145,7 @@ public class PartsIdentificationManager : MonoBehaviour
             simulationManager.SimulationEnd.RemoveListener(OnSimulationEnd);
         }
         AssistantManager.PromptCompleted -= OnPromptCompleted;
+        TeleportManager.TeleportCompleted -= OnTeleportCompletedForHighlight;
 
         if (skipButtonGO != null)
         {
@@ -146,7 +176,6 @@ public class PartsIdentificationManager : MonoBehaviour
         {
             OnPartBecameInactive?.Invoke(_activeHighlight);
 
-            // Hide GrabHighlightController directly if present
             var highlight = _activeHighlight.GetComponent<GrabHighlightController>();
             if (highlight != null) highlight.HideHighlight();
 
@@ -181,6 +210,31 @@ public class PartsIdentificationManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sets _videoIntercepting immediately on state change — before ShowUIAndHighlight.
+    /// Uses VideoClip.length directly from the asset so it works before the
+    /// VideoPlayer has loaded the clip at runtime.
+    /// </summary>
+    private void PreCheckVideoIntercept(SimulationState state)
+    {
+        if (state == null) { _videoIntercepting = false; return; }
+
+        var partData = state.GetComponent<PartStepData>();
+        if (partData == null || partData.videoClip == null)
+        {
+            _videoIntercepting = false;
+            return;
+        }
+
+        float audioLength = state.promptAudio != null ? state.promptAudio.length : 0f;
+        float videoLength = (float)partData.videoClip.length;
+
+        _videoIntercepting = videoLength > audioLength;
+
+        Debug.Log($"[PartsIdentificationManager] Video check: audio={audioLength:F2}s " +
+                  $"video={videoLength:F2}s intercept={_videoIntercepting}");
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // UI + HIGHLIGHT
     // ─────────────────────────────────────────────────────────────────────
@@ -194,29 +248,150 @@ public class PartsIdentificationManager : MonoBehaviour
 
         HideActivePanel();
 
-        // ── Show familiarization UI panel ─────────────────────────────────
+        // ── Kill bot prompt panel scale ───────────────────────────────────
+        if (botPromptPanel != null)
+            botPromptPanel.transform.localScale = Vector3.zero;
+
+        // ── Teleport ──────────────────────────────────────────────────────
+        // SimulationState.StartState returns early for MoveToNextStepAfterAudio
+        // states and never fires UpdatePlayerPos. We fire it here instead.
+        if (state.teleportOnStart &&
+            state.teleportTarget != null &&
+            state.MoveToNextStepAfterAudio &&
+            TeleportManager.Instance != null)
+        {
+            if (simulationManager.simulationMode == SimulationMode.FreeRoam)
+            {
+                // In Free Roam skip actual teleport — invoke TeleportCompleted
+                // directly so WaitForActionAsync unblocks and audio plays.
+                // No player movement occurs.
+                TeleportManager.TeleportCompleted?.Invoke();
+            }
+            else
+            {
+                // Guided — teleport the player and defer UI + highlight
+                _pendingHighlightState = state;
+                TeleportManager.Instance.UpdatePlayerPos(state.teleportTarget);
+                return; // UI + highlight fired in OnTeleportCompletedForHighlight
+            }
+        }
+
+        // ── Show UI and highlight immediately (no teleport) ───────────────
+        ShowPanelAndHighlight(state);
+    }
+
+    private void ShowPanelAndHighlight(SimulationState state)
+    {
+        if (state == null) return;
+        var partData = state.GetComponent<PartStepData>();
+        if (partData == null) return;
+
+        // UI panel
         if (partData.uiPanel != null)
         {
             partData.uiPanel.Show(partData.displayName, state.promptText);
             _activePanel = partData.uiPanel;
         }
 
-        // ── Kill bot prompt panel scale ───────────────────────────────────
-        // Force scale to zero every frame while this state is active so the
-        // AssistantManager panel never becomes visible. Audio plays normally.
-        if (botPromptPanel != null)
-            botPromptPanel.transform.localScale = Vector3.zero;
+        // Video — respect showVideoUI flag on uiPanel
+        bool videoAllowed = partData.uiPanel == null || partData.uiPanel.showVideoUI;
+        if (partData.videoPanel != null && partData.videoClip != null && videoAllowed)
+        {
+            partData.videoPanel.Play(partData.videoClip);
 
-        // ── Highlight ─────────────────────────────────────────────────────
+            float audioLength = state.promptAudio != null ? state.promptAudio.length : 0f;
+            // Use clip.length directly — VideoPlayer loads async so VideoLength is 0 at this point
+            float videoLength = (float)partData.videoClip.length;
+
+            // If video is longer than audio, take over advancement
+            if (videoLength > audioLength)
+            {
+                _videoIntercepting = true;
+
+                if (_videoCoroutine != null) StopCoroutine(_videoCoroutine);
+                _videoCoroutine = StartCoroutine(WaitForVideoCoroutine(
+                    state, partData.videoPanel, audioLength, videoLength));
+            }
+            else
+            {
+                _videoIntercepting = false;
+            }
+        }
+        else
+        {
+            // No video or video hidden — hide the video panel
+            if (partData.videoPanel != null)
+                partData.videoPanel.Stop();
+            _videoIntercepting = false;
+        }
+
+        // Highlight
         if (partData.highlightTarget != null)
         {
             _activeHighlight = partData.highlightTarget;
             OnPartBecameActive?.Invoke(_activeHighlight);
 
-            // Drive GrabHighlightController directly if present
             var highlight = _activeHighlight.GetComponent<GrabHighlightController>();
             if (highlight != null) highlight.ShowHighlight();
         }
+    }
+
+    private IEnumerator WaitForVideoCoroutine(
+        SimulationState state,
+        FamiliarizationVideoPanel videoPanel,
+        float audioLength,
+        float videoLength)
+    {
+        // Wait for the longer of the two
+        float waitTime = Mathf.Max(audioLength, videoLength);
+        yield return new WaitForSeconds(waitTime);
+
+        _videoCoroutine = null;
+        _videoIntercepting = false;
+
+        // Only advance if this state is still active
+        if (simulationManager.currentState != state) yield break;
+
+        videoPanel.Stop();
+
+        // Hide panel directly without going through HideActivePanel
+        // to avoid stopping this coroutine while it's still running
+        if (_activePanel != null)
+        {
+            _activePanel.Hide();
+            _activePanel = null;
+        }
+
+        // Advance — handle Free Roam last-part separately to return to parked state
+        int currentIndex = simulationManager.states.IndexOf(state.gameObject);
+
+        if (simulationManager.simulationMode == SimulationMode.FreeRoam &&
+            _activeGroup != null &&
+            currentIndex == _activeGroupEndIdx)
+        {
+            // Last part of station in Free Roam — return to parked state
+            _activeGroup = null;
+            _activeGroupEndIdx = -1;
+            simulationManager.MoveToState(freeRoamStateIndex);
+        }
+        else
+        {
+            // Guided or mid-sequence Free Roam — advance normally
+            simulationManager.MoveToNextState();
+        }
+    }
+
+    private void OnTeleportCompletedForHighlight()
+    {
+        if (_pendingHighlightState == null) return;
+
+        SimulationState state = _pendingHighlightState;
+        _pendingHighlightState = null;
+
+        // Only show UI + highlight if this state is still active
+        if (simulationManager.currentState != state) return;
+
+        ShowPanelAndHighlight(state);
     }
 
 
@@ -227,14 +402,39 @@ public class PartsIdentificationManager : MonoBehaviour
 
     private void OnPromptCompleted()
     {
+        // If video is still running and is longer than audio, do NOT hide yet.
+        // WaitForVideoCoroutine will hide and advance when video finishes.
+        if (_videoIntercepting) return;
+
         HideActivePanel();
     }
 
     private void HideActivePanel()
     {
-        if (_activePanel == null) return;
-        _activePanel.Hide();
-        _activePanel = null;
+        // Stop video coroutine only when called from outside video flow
+        if (_videoCoroutine != null)
+        {
+            StopCoroutine(_videoCoroutine);
+            _videoCoroutine = null;
+            _videoIntercepting = false;
+        }
+
+        // Stop active video panel if playing
+        if (_activePanel != null)
+        {
+            var partData = _activePanel.GetComponentInParent<PartStepData>()
+                        ?? _activePanel.GetComponent<PartStepData>();
+            if (partData == null)
+            {
+                var state = simulationManager?.currentState;
+                if (state != null) partData = state.GetComponent<PartStepData>();
+            }
+            if (partData?.videoPanel != null)
+                partData.videoPanel.Stop();
+
+            _activePanel.Hide();
+            _activePanel = null;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -272,15 +472,28 @@ public class PartsIdentificationManager : MonoBehaviour
     /// </summary>
     public bool TryInterceptStateComplete(int completedIndex)
     {
-        if (simulationManager.simulationMode != SimulationMode.FreeRoam) return false;
-        if (_activeGroup == null) return false;
-        if (completedIndex != _activeGroupEndIdx) return false;
+        // Video intercept — applies in BOTH modes when video is longer than audio.
+        // WaitForVideoCoroutine handles advancement when it finishes.
+        if (_videoIntercepting)
+        {
+            Debug.Log("[PartsIdentificationManager] Intercepting — waiting for video to finish.");
+            return true;
+        }
 
-        Debug.Log($"[PartsIdentificationManager] Last part complete. Returning to Free Roam.");
-        _activeGroup = null;
-        _activeGroupEndIdx = -1;
-        simulationManager.MoveToState(freeRoamStateIndex);
-        return true;
+        // Free Roam last part — return to parked state
+        if (simulationManager.simulationMode == SimulationMode.FreeRoam)
+        {
+            if (_activeGroup == null) return false;
+            if (completedIndex != _activeGroupEndIdx) return false;
+
+            Debug.Log("[PartsIdentificationManager] Last part complete. Returning to Free Roam.");
+            _activeGroup = null;
+            _activeGroupEndIdx = -1;
+            simulationManager.MoveToState(freeRoamStateIndex);
+            return true;
+        }
+
+        return false;
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -330,6 +543,12 @@ public class PartsIdentificationManager : MonoBehaviour
         Debug.Log("[PartsIdentificationManager] Simulation ended.");
         SetAllIButtonsVisible(false);
         SetSkipButtonVisible(false);
+        if (_skipCooldownCoroutine != null)
+        {
+            StopCoroutine(_skipCooldownCoroutine);
+            _skipCooldownCoroutine = null;
+        }
+        SetSkipButtonInteractable(true);
         HideActivePanel();
 
         if (_activeHighlight != null)
@@ -385,6 +604,11 @@ public class PartsIdentificationManager : MonoBehaviour
         Debug.Log($"[PartsIdentificationManager] Skipping to '{nextStation.stationName}' " +
                   $"at index {nextStation.stationIntroStateIndex}.");
 
+        // Disable skip button immediately — re-enabled after cooldown
+        SetSkipButtonInteractable(false);
+        if (_skipCooldownCoroutine != null) StopCoroutine(_skipCooldownCoroutine);
+        _skipCooldownCoroutine = StartCoroutine(SkipCooldownRoutine());
+
         // Stop current state coroutines — kills audio and loops immediately
         if (simulationManager.currentState != null)
             simulationManager.currentState.StopAllCoroutines();
@@ -400,6 +624,19 @@ public class PartsIdentificationManager : MonoBehaviour
         }
 
         simulationManager.MoveToState(nextStation.stationIntroStateIndex);
+    }
+
+    private IEnumerator SkipCooldownRoutine()
+    {
+        yield return new WaitForSeconds(skipCooldownDuration);
+        _skipCooldownCoroutine = null;
+        SetSkipButtonInteractable(true);
+    }
+
+    private void SetSkipButtonInteractable(bool interactable)
+    {
+        if (skipButtonGO == null) return;
+        skipButtonGO.SetActive(interactable);
     }
 
     public void SetSkipButtonVisible(bool visible)

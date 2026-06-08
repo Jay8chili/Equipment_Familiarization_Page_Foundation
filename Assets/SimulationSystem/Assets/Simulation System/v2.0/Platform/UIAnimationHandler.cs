@@ -91,18 +91,19 @@ namespace SimulationSystem.V0._1.UI
         }
 
         #region PromptScreenFunctions
-        public void ScaleUp()
-        {                      
-            this.transform.DoPop(hoverScale.x, animationTime);            
+        public async void ScaleUp()
+        {
+            transform.localScale = this.hoverScale;           
         }
-        public void ScaleDown()
-        { 
-           this.transform.DoPop(unHoverScale.x, animationTime);
+        public async void ScaleDown()
+        {
+
+            transform.localScale = this.unHoverScale;
         }
 
         #endregion
 
-    }
+        }
 }
 public enum DominantHand
 {

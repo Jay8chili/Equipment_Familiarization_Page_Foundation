@@ -9,6 +9,8 @@ using UnityEngine.Events;
 
 public class SimulationState : MonoBehaviour
 {
+    public int sessionLogID;
+
     [SerializeField] public List<Interactions> listOfInteractions = new List<Interactions>();
 
     [HideInInspector] public Interactions currentInteraction ;

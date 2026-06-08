@@ -1,9 +1,10 @@
 using SimulationSystem.V02.Simulation.Managers;
+using SimulationSystem.V02.StateInteractions;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-
+using System.Threading.Tasks;
 public class SimulationManager : MonoBehaviour
 {
 
@@ -170,13 +171,6 @@ public class SimulationManager : MonoBehaviour
         SimulationResumed?.Invoke();
         Debug.Log("[SimulationManager] Simulation resumed.");
     }
-    public void AssignStepSessionID(List<Step> steps)
-    {
-        for (int i = 0; i < steps.Count; i++)
-        {
-            states[i].GetComponent<SimulationState>().sessionLogID = steps[i].log_id;
-        }
-    }
 
     /// <summary>
     /// Convenience alias — resumes from pause if paused, otherwise no-op.
@@ -228,13 +222,10 @@ public class SimulationManager : MonoBehaviour
     public void MoveToState(int index)
     {
 
-
-
         StepUpdate data = new StepUpdate(currentState.sessionLogID, "Done", SessionManager.Instance.GetElapsedTime(), (int)AssessmentManager.Instance._currentStateRecord.stateFinalScore, "This Step Is Assessed");
         SessionManager.Instance.UpdateSession(data);
 
         //Before Current State Changes To Next State, Log the Current State's Score and Time Spent to SessionManager
-
 
 
         if (states == null || states.Count == 0)
@@ -251,7 +242,6 @@ public class SimulationManager : MonoBehaviour
 
             AssessmentManager.Instance?.CloseSession(); // if AssessmentManager exists in the scene, close the session
             SessionManager.Instance.EndSession();
-
             SimulationEnd?.Invoke();
             simulationCompletedPanel.SetActive(true);
         }
@@ -275,10 +265,8 @@ public class SimulationManager : MonoBehaviour
             Debug.LogError("Started State : " + index + " " + currentState.promptText);
             currentState.StartState(this);
             SessionManager.Instance.ResetElapsedTime();
-
         }
     }
-
 
     private void StopCurrent()
     {
@@ -308,6 +296,9 @@ public class SimulationManager : MonoBehaviour
 
     public void SetMode(int value)
     {
+        float maxScore = 0f;
+        List<Step> steps = new List<Step>();
+
         if (value == 0)
             SetSimulationType(SimulationMode.Guided);
         else if (value == 1)
@@ -317,9 +308,73 @@ public class SimulationManager : MonoBehaviour
 
         setModeUI.SetActive(false);
 
-        StartSimulation();
-    }
+        string mode;
+        foreach (var states in states)
+        {
+            Step step = new(states.GetComponent<SimulationState>().promptText, GetStateTypeString(states.GetComponent<SimulationState>()));
+            steps.Add(step);
+            if (value == 1)
+            {
+                foreach (var a in states.GetComponent<AssessmentController>().interactionConfigs)
+                {
+                    maxScore += a.maxScore;
+                }
+            }
+        }
+        if (value == 1)
+        {
+            mode = "Assessment";
+        }
+        else
+        {
+            mode = "Guided";
+        }
+        SessionManager.Instance.CreateSession(mode, steps, maxScore, () =>
+        {
 
+
+            StartSession();
+        });
+
+    }
+    private string GetStateTypeString(SimulationState state)
+    {
+        //Check the edge case of if prompt state type is considered only if AutoProgress boolean is True in State
+        if (state.listOfInteractions.Count <= 0)
+        {
+            return "Prompt";
+        }
+        else
+        {
+            switch (state.listOfInteractions[0])
+            {
+                case GrabInteraction:
+                    return "Grab";
+                    break;
+                case DetectInteraction:
+                    if (state.listOfInteractions[0].GetComponent<DetectInteraction>().ObjectsToBeDetectedList[0].GetComponent<GrabInteraction>())
+                    {
+                        return "Detect With Grab";
+
+                    }
+                    else
+                    {
+                        return "Detect With Hand";
+                    }
+                case UIInteraction:
+                    return "Ui";
+                    break;
+                case GazeInteraction:
+                    return "Gaze";
+                    break;
+                case IdleInteraction:
+                    return "Idle";
+                    break;
+                default:
+                    return "Prompt";
+            }
+        }
+    }
     private void StartSimulation()
     {
         currentState = states[0].GetComponent<SimulationState>();
@@ -333,7 +388,23 @@ public class SimulationManager : MonoBehaviour
         //event
         SimulationStart?.Invoke();
     }
+    public void AssignStepSessionID(List<Step> steps)
+    {
+        for (int i = 0; i < steps.Count; i++)
+        {
+            states[i].GetComponent<SimulationState>().sessionLogID = steps[i].log_id;
+        }
+    }
+    private async void StartSession()
+    {
+        await Task.Delay(2000);
+        setModeUI.SetActive(false);
 
+
+        //ConfigureScenarioSteps();
+
+        StartSimulation();
+    }
     private void SetSimulationType(SimulationMode mode)
     {
         simulationMode = mode;

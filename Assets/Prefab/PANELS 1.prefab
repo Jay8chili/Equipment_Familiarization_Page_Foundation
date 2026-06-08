@@ -878,6 +878,7 @@ MonoBehaviour:
         m_PersistentCalls:
           m_Calls: []
       waitTimeInSeconds: 0
+    assessmentBehaviour: 0
 --- !u!225 &4563236033574270821
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -2039,9 +2040,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63c25106b019d1642aa18370deffe406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Progress
-  panel: {fileID: 8552216286581644901}
-  progressBar: {fileID: 2364421547429089744}
-  percentText: {fileID: 155535330917046369}
+  displayMode: 0
+  progressText: {fileID: 0}
 --- !u!222 &1408862147231264160
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2478,6 +2478,7 @@ MonoBehaviour:
         m_PersistentCalls:
           m_Calls: []
       waitTimeInSeconds: 0
+    assessmentBehaviour: 0
 --- !u!225 &4414835342541264459
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -9125,9 +9126,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63c25106b019d1642aa18370deffe406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Progress
-  panel: {fileID: 6074733979733759240}
-  progressBar: {fileID: 3501985879729586264}
-  percentText: {fileID: 601212873292165998}
+  displayMode: 0
+  progressText: {fileID: 0}
 --- !u!222 &5310792338626749997
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -9208,9 +9208,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63c25106b019d1642aa18370deffe406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Progress
-  panel: {fileID: 5822813415086324532}
-  progressBar: {fileID: 4076497848446512851}
-  percentText: {fileID: 2877768162814492769}
+  displayMode: 0
+  progressText: {fileID: 0}
 --- !u!222 &2961518004381429427
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -11116,9 +11115,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63c25106b019d1642aa18370deffe406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Progress
-  panel: {fileID: 5822813415086324532}
-  progressBar: {fileID: 4076497848446512851}
-  percentText: {fileID: 2877768162814492769}
+  displayMode: 0
+  progressText: {fileID: 0}
 --- !u!114 &7119427032876422104
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11583,9 +11581,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63c25106b019d1642aa18370deffe406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Progress
-  panel: {fileID: 6074733979733759240}
-  progressBar: {fileID: 3501985879729586264}
-  percentText: {fileID: 601212873292165998}
+  displayMode: 0
+  progressText: {fileID: 0}
 --- !u!114 &6022710750362429231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18323,9 +18320,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63c25106b019d1642aa18370deffe406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Progress
-  panel: {fileID: 8552216286581644901}
-  progressBar: {fileID: 2364421547429089744}
-  percentText: {fileID: 155535330917046369}
+  displayMode: 0
+  progressText: {fileID: 0}
 --- !u!114 &5328760192995456984
 MonoBehaviour:
   m_ObjectHideFlags: 0

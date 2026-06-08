@@ -1,17 +1,14 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  PartStepData.cs
-//  Sits alongside SimulationState on each generated state GameObject.
-//  Carries all familiarization metadata for that step.
-//  Populated automatically by the Parts Identification Wizard.
-//  Read at runtime by PartsIdentificationManager.
 // ════════════════════════════════════════════════════════════════════════════
 
 using UnityEngine;
+using UnityEngine.Video;
 
 public enum PartStepType
 {
-    Station,    // Intro step that describes the whole station
-    Part        // Step that describes an individual part
+    Station,
+    Part
 }
 
 public class PartStepData : MonoBehaviour
@@ -22,15 +19,18 @@ public class PartStepData : MonoBehaviour
     [Tooltip("Whether this step is a Station intro or an individual Part description.")]
     public PartStepType stepType = PartStepType.Part;
 
-    [Tooltip("Station group ID this step belongs to (e.g. S01). " +
-             "All parts of a station share the same ID as their station intro.")]
+    [Tooltip("Station group ID this step belongs to (e.g. S01).")]
     public string stationId = string.Empty;
 
     [Tooltip("The mesh or parent GameObject to highlight when this step is active.")]
     public GameObject highlightTarget;
 
-    [Tooltip("The world-space UI panel to show when this step's prompt starts " +
-             "and hide when the prompt audio completes. " +
-             "Assigned automatically by the wizard from the UI Parent.")]
+    [Tooltip("The world-space UI panel. Assigned automatically by the wizard.")]
     public FamiliarizationUIPanel uiPanel;
+
+    [Tooltip("The video panel child of the UI prefab. Assigned automatically by the wizard.")]
+    public FamiliarizationVideoPanel videoPanel;
+
+    [Tooltip("Video clip to play for this step. Leave empty if no video.")]
+    public VideoClip videoClip;
 }

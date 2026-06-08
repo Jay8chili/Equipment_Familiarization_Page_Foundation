@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -8,8 +8,11 @@ public class GrabHighlightPass : ScriptableRenderPass
 {
     private Material _overlayMaterial;
 
-    private static readonly int ID_Amount = Shader.PropertyToID("_HighlightAmount");
-    private static readonly int ID_RimColor = Shader.PropertyToID("_RimColor");
+    private static readonly int ID_Amount        = Shader.PropertyToID("_HighlightAmount");
+    private static readonly int ID_RimColor      = Shader.PropertyToID("_RimColor");
+    private static readonly int ID_StrokeColor   = Shader.PropertyToID("_StrokeColor");
+    private static readonly int ID_StrokeWidth   = Shader.PropertyToID("_StrokeWidth");
+    private static readonly int ID_StrokeEnabled = Shader.PropertyToID("_StrokeEnabled");
 
     public static int LastFrameRendererCount;
     public static int LastFrameDrawCallCount;
@@ -29,7 +32,7 @@ public class GrabHighlightPass : ScriptableRenderPass
     public GrabHighlightPass(Material overlayMaterial)
     {
         _overlayMaterial = overlayMaterial;
-        renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
+        renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
     }
 
     private void EnsureInitialised()
@@ -83,9 +86,17 @@ public class GrabHighlightPass : ScriptableRenderPass
         if (highestAmount < 0.001f) { LastFrameSkipReason = "All amounts 0"; return; }
 
         // Set values directly on the material — safe because this material
-        // is our own overlay material, not the object's original material
-        _overlayMaterial.SetFloat(ID_Amount, highestAmount);
+        // is our own overlay material, not the object's original material.
+        // Rim pass (Pass 1)
+        _overlayMaterial.SetFloat(ID_Amount,   highestAmount);
         _overlayMaterial.SetColor(ID_RimColor, rimColor);
+
+        // Stroke pass (Pass 0) — mirror rim colour into stroke colour so both
+        // animate together.  The material inspector can override _StrokeColor
+        // independently if desired; we only push here when the entry has a
+        // non-default stroke colour (extend RendererEntry later if needed).
+        // _StrokeWidth and _StrokeEnabled are authored in the material and are
+        // NOT overridden here — they are inspector-driven design-time values.
 
         LastFrameSkipReason = "running";
 
@@ -104,7 +115,7 @@ public class GrabHighlightPass : ScriptableRenderPass
             SortingCriteria.CommonTransparent);
 
         drawSettings.overrideMaterial = _overlayMaterial;
-        drawSettings.overrideMaterialPassIndex = 0;
+        drawSettings.overrideMaterialPassIndex = -1;  // -1 = render ALL passes in the override material
 
         var rendererListParams = new RendererListParams(
             renderingData.cullResults, drawSettings, filterSettings);

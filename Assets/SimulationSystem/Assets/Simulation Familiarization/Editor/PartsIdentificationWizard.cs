@@ -25,6 +25,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Video;
 
 namespace SimulationSystem.V02.Editor
 {
@@ -44,6 +45,9 @@ namespace SimulationSystem.V02.Editor
 
         // The mesh or parent GO to highlight when this step is active
         public GameObject partReference;
+
+        // Video
+        public VideoClip videoClip;
 
         // Teleport
         public bool teleportOnStart = false;
@@ -552,6 +556,14 @@ namespace SimulationSystem.V02.Editor
                     EditorGUILayout.HelpBox(
                         $"✔  {step.partReference.name}", MessageType.None);
 
+                GUILayout.Space(4);
+                step.videoClip = (VideoClip)EditorGUILayout.ObjectField(
+                    new GUIContent("Video Clip",
+                        "Optional video clip to play for this step. " +
+                        "Leave empty if no video. If longer than audio, " +
+                        "advancement waits for video to finish."),
+                    step.videoClip, typeof(VideoClip), false);
+
                 GUILayout.Space(6);
 
                 // ── Localised Text ────────────────────────────────────────────
@@ -694,17 +706,7 @@ namespace SimulationSystem.V02.Editor
                 partData.stationId = step.stationId;
 
                 if (step.partReference != null)
-                {
                     partData.highlightTarget = step.partReference;
-
-                    // Add GrabHighlightController to the highlight target if not already present
-                    if (step.partReference.GetComponent<GrabHighlightController>() == null)
-                    {
-                        step.partReference.AddComponent<GrabHighlightController>();
-                        EditorUtility.SetDirty(step.partReference);
-                        Debug.Log($"[Parts ID Wizard] Added GrabHighlightController to '{step.partReference.name}'");
-                    }
-                }
                 else
                     warnings.Add($"Step {stepNo} '{step.stepName}' has no Part Object assigned.");
 
@@ -725,14 +727,21 @@ namespace SimulationSystem.V02.Editor
                     var uiPanel = panelGO.GetComponent<FamiliarizationUIPanel>();
                     if (uiPanel == null)
                     {
-                        // Prefab is missing the component — add it and warn
                         uiPanel = panelGO.AddComponent<FamiliarizationUIPanel>();
                         warnings.Add($"Step {stepNo} '{step.stepName}': UI Panel Prefab has no " +
                                      "FamiliarizationUIPanel component — added automatically. " +
                                      "Wire nameLabel and descriptionLabel manually.");
                     }
-
                     partData.uiPanel = uiPanel;
+
+                    // Wire FamiliarizationVideoPanel from prefab children if present
+                    var videoPanel = panelGO.GetComponentInChildren<FamiliarizationVideoPanel>(true);
+                    if (videoPanel != null)
+                        partData.videoPanel = videoPanel;
+
+                    // Assign video clip
+                    if (step.videoClip != null)
+                        partData.videoClip = step.videoClip;
 
                     // ── Assign TMP text at edit time ──────────────────────────
                     // nameLabel  = step name (title)
