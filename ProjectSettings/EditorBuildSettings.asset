@@ -17,6 +17,7 @@ EditorBuildSettings:
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 4d771db3da4da724e99dabee56d28a72, type: 2}
     UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: ee1988bd38dbed048a43220e74d6be75, type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: f8a442de0c8906f4d9c00184993fc289, type: 2}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 72bbb4452b205ba46b13a0fc5e2b86e7, type: 3}
     com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: 56a98106ce58f09459a9990007b50acb, type: 2}
     com.unity.xr.magicleap.magic_leap_settings: {fileID: 11400000, guid: 43e231e21fbbf574a9be9d5f1a44b151, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 2462f957eee75f940a3393fd6f039795, type: 2}

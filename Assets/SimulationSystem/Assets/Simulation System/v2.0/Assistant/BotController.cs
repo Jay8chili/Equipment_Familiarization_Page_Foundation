@@ -220,12 +220,12 @@ public class BotController : MonoBehaviour
 
     private void PollInput()
     {
-        if (Input.GetKeyDown(KeyCode.Z))
+        /*if (Input.GetKeyDown(KeyCode.Z))
         {
 
             TogglePosition();
         }
-
+*/
 
         bool leftNow = GetVRButton(InputDeviceCharacteristics.Left, CommonUsages.primaryButton);
         if (leftNow && !_prevLeftPrimary)
