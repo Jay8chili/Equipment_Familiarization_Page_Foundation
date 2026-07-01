@@ -78341,6 +78341,86 @@ MonoBehaviour:
       m_MarkPositionAdjustment:
         m_XPositionAdjustment: -21.18164
         m_YPositionAdjustment: 56.293945
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 39.902344
+        m_YCoordinate: -17.885742
+      m_MarkGlyphID: 173
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -26.279297
+        m_YPositionAdjustment: 0
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 23.598633
+        m_YCoordinate: 56.689453
+      m_MarkGlyphID: 168
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -23.598633
+        m_YPositionAdjustment: 56.689453
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 23.598633
+        m_YCoordinate: 56.689453
+      m_MarkGlyphID: 169
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -24.169922
+        m_YPositionAdjustment: 56.689453
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 23.598633
+        m_YCoordinate: 56.689453
+      m_MarkGlyphID: 170
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -24.389648
+        m_YPositionAdjustment: 55.195312
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 23.598633
+        m_YCoordinate: 56.689453
+      m_MarkGlyphID: 171
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -26.411133
+        m_YPositionAdjustment: 56.381836
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 23.598633
+        m_YCoordinate: 56.689453
+      m_MarkGlyphID: 172
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -20.43457
+        m_YPositionAdjustment: 56.82129
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 23.598633
+        m_YCoordinate: 56.689453
+      m_MarkGlyphID: 292
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -23.642578
+        m_YPositionAdjustment: 52.29492
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 23.598633
+        m_YCoordinate: 56.689453
+      m_MarkGlyphID: 293
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -19.11621
+        m_YPositionAdjustment: 52.29492
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 23.598633
+        m_YCoordinate: 56.689453
+      m_MarkGlyphID: 294
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -22.807617
+        m_YPositionAdjustment: 56.293945
+    - m_BaseGlyphID: 85
+      m_BaseGlyphAnchorPoint:
+        m_XCoordinate: 23.598633
+        m_YCoordinate: 56.689453
+      m_MarkGlyphID: 295
+      m_MarkPositionAdjustment:
+        m_XPositionAdjustment: -21.18164
+        m_YPositionAdjustment: 56.293945
     m_MarkToMarkAdjustmentRecords: []
   m_ShouldReimportFontFeatures: 0
   m_FallbackFontAssetTable: []
